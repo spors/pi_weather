@@ -1,4 +1,4 @@
-This repository contains the implementations of an internet weather station build using
+This repository contains the implementation details of an internet weather station using
 
 * The [Raspberry Pi 2](https://www.raspberrypi.org/products/raspberry-pi-2-model-b/)
 * The [WeeWx](http://www.weewx.com/) weather station software
