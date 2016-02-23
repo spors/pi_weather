@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8">
+    <script src="vendor/tween-min.js" type="text/javascript"></script>
+    <script src="vendor/steelseries-min.js" type="text/javascript"></script>
+    <title>Temp</title>
+    <script type="text/javascript">
+	var tempGauge;
+	
+    var ws = new WebSocket("ws://192.168.2.100:9998/ws");
+
+    ws.onopen = function()
+    		{
+         // Web Socket is connected, send data using send()
+         ws.send("Hello");
+         };
+
+     ws.onmessage = function (evt)
+         {
+          var received_msg = evt.data;
+          obj = JSON.parse(received_msg);
+          temp = obj.windSpeed
+          tempGauge.setValue(temp);
+          // tempGauge.setValueAnimated(temp);
+          dir = obj.windDir
+          windDirGauge.setValueAnimatedLatest(dir);
+          windDirGauge.setValueAnimatedAverage(dir);
+          // alert("Message is received...");
+         };
+
+      ws.onclose = function()
+          {
+           // websocket is closed.
+           // alert("Connection is closed...");
+          };
+
+	function init() {
+	    // by @jpmens, Sep 2013
+	    // from @bordignons Sep 2013
+	    // original idea.. http://www.desert-home.com/2013/06/how-to-use-steelseries-gauges-with.html
+	    // with help.. http://harmoniccode.blogspot.com.au/
+	    // and code.. https://github.com/HanSolo/SteelSeries-Canvas
+
+		tempGauge = new steelseries.Radial('gaugeCanvas1', {
+			gaugeType: steelseries.GaugeType.TYPE4,
+			minValue:0,
+			maxValue:10,
+			size: 400,
+			frameDesign: steelseries.FrameDesign.GlossyMetal,
+			knobStyle: steelseries.KnobStyle.STEEL,
+			pointerType: steelseries.PointerType.TYPE6,
+			lcdDecimals: 0,
+			section: null,
+			area: null,
+			titleString: 'Geschwindigkeit',
+			unitString: 'm/s',
+			threshold: 100,
+			lcdVisible: true,
+			lcdDecimals: 2
+		   });
+		tempGauge.setValue(''); //gives a blank display 'NaN' until broker has connected
+		tempGauge.setLedColor(steelseries.LedColor.RED_LED); //set the LED RED until connected
+
+           windDirGauge = new steelseries.WindDirection('gaugeCanvas2', {
+                            size: 400,
+                            lcdVisible: true
+                            });
+
+	}
+
+    </script>
+  </head>
+  <body onload="init();">
+       <div>
+       <canvas id=gaugeCanvas1 width=200 height=200>No canvas in your browser...sorry...</canvas>
+       <canvas id=gaugeCanvas2 width=200 height=200>No canvas in your browser...sorry...</canvas>
+       </div>
+  </body>
+</html>
