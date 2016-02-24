@@ -3,9 +3,9 @@ import tornado.websocket
 import tornado.ioloop
 import tornado.web
 import json
-import time
 
 data = {}
+clients = []
 
 def parse_data(fname):
     
@@ -17,31 +17,37 @@ def parse_data(fname):
     return data
 
 
+def send_data():
+    for cl in clients:
+        #data = parse_data('/home/pi/wxdata.txt')
+        #msg = json.dumps({'windSpeed': data['windSpeed'], 'windDir': data['windDir']})
+        msg = json.dumps({'windSpeed': 5, 'windDir': 180})
+        cl.write_message(msg)
+
+
 class WSHandler(tornado.websocket.WebSocketHandler):
     def open(self):
         print('new connection')
-
-
-        while True:
-            data = parse_data('/home/pi/wxdata.txt')
-            msg = json.dumps({'windSpeed': data['windSpeed'], 'windDir': data['windDir']})
-            self.write_message(msg)
-
-            time.sleep(1)
+        
+        if self not in clients:
+            clients.append(self)
 
     def on_message(self, message):
         print('message received %s' % message)
 
     def on_close(self):
       print('connection closed')
+      
+      if self in clients:
+            clients.remove(self)
+            
+    def check_origin(self, origin):
+        return True
 
-application = tornado.web.Application([
-    (r'/ws', WSHandler),
-])
 
+application = tornado.web.Application([(r'/ws', WSHandler),])
 
-if __name__ == "__main__":
-    http_server = tornado.httpserver.HTTPServer(application)
-    http_server.listen(9998)
-    tornado.ioloop.IOLoop.instance().start()
-
+http_server = tornado.httpserver.HTTPServer(application)
+http_server.listen(9998)
+tornado.ioloop.PeriodicCallback(send_data, 1000).start()
+tornado.ioloop.IOLoop.instance().start()
