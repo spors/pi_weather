@@ -1,16 +1,25 @@
 #!/usr/bin/env python3
-""" Skript that gets measurements from the sonsors and
-    writes it to a file for the weewx fileparse driver
+""" Skript that captures the measurements from the
+        - anemometer
+        - wind vane
+        - temperature sensor
+        - barometer
+    sensor, processes the data and writes the measurements to
+    a file as attribute value pairs for the weewx fileparse
+    driver.
+
+    (c) Sascha Spors, MIT License
 """
 
-
-import RPi.GPIO as GPIO
 import numpy as np
 import time
-import re, os
+import re
+import RPi.GPIO as GPIO
 import spidev
 import Adafruit_BMP.BMP085 as BMP085
 
+
+# dict for conversion of active bits to wind angles
 adict = {5:0, 3:45, 0:90, 1:135, 2:180, 4:225, 7:270, 6:315}
 
 
@@ -20,12 +29,12 @@ def C2F(temperature):
 
 
 def mps2mph(speed):
-  # convert meters per second to miles per hour
+  # convert speed from meters per second to miles per hour
   return(speed * 2.23694)
 
 
 def Pa2Hg(pressure):
-  # convert Pascal to Hg
+  # convert pressure from Pascal to Hg
   return(pressure * 0.000295299830714)
 
 
@@ -47,7 +56,7 @@ def get_DS18B20_temperature(path):
 
 
 def get_adc(channel):
-  # get value of ADC
+  # get value of MCP3008 ADC
   adc = spi.xfer2([1,(8+channel)<<4, 0])
   data = ((adc[1]&3)<<8)+adc[2]
 
@@ -55,10 +64,10 @@ def get_adc(channel):
 
 
 def get_wind_dir():
-  # get wind direction from resistance of vane
-  adc = get_adc(0)    
+  # get direction from wind vane
+  adc = get_adc(0)
   V = 3.3 * adc / 1023
-  R2 = 2000*5/V - 2000	
+  R2 = 2000*5/V - 2000
   idx = np.round(np.log2(R2/1000))
 
   return adict[idx]
@@ -101,7 +110,7 @@ in_temp = 0
 # register event loop
 GPIO.add_event_detect(40, GPIO.RISING, callback = ISR)
 
-# loop that writes the results
+# main loop that captures the data
 while 1:
 
     # open file

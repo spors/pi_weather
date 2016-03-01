@@ -19,9 +19,9 @@ def parse_data(fname):
 
 def send_data():
     for cl in clients:
-        #data = parse_data('/home/pi/wxdata.txt')
-        #msg = json.dumps({'windSpeed': data['windSpeed'], 'windDir': data['windDir']})
-        msg = json.dumps({'windSpeed': 5, 'windDir': 180})
+        data = parse_data('/home/pi/wxdata.txt')
+        msg = json.dumps({'windSpeed': data['windSpeed'], 'windDir': data['windDir']})
+        #msg = json.dumps({'windSpeed': 5, 'windDir': 180})
         cl.write_message(msg)
 
 
