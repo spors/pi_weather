@@ -14,10 +14,18 @@
 import numpy as np
 import time
 import re
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
+import pigpio
 import spidev
 import Adafruit_BMP.BMP085 as BMP085
 
+
+tick0 = 0  # a-priori time of ISR
+n = 0  # loop counter for ISR
+wspeed = 0  # initialze wind speed
+wspeed0 = 0  # previous measurement for integry check
+out_temp = 0  # init for temperature
+in_temp = 0
 
 # dict for conversion of active bits to wind angles
 adict = {5:0, 3:45, 0:90, 1:135, 2:180, 4:225, 7:270, 6:315}
@@ -73,23 +81,24 @@ def get_wind_dir():
   return adict[idx]
 
 
-def ISR(channel):
+def ISR(gpio, level, tick):
   # interupt service routine which is called by anemometer
-  global t0, n, wspeed, t
+  global tick0, n, wspeed
     
-  if n%2:
-    t1 = time.time()
-    T = t1 - t0
-    t0 = t1
+  if ((n%2) & (tick>0)):
+      T=(tick-tick0)*1e-6
+      tick0 = tick
 
-    wspeed = 3 * np.pi*0.07/T
+      wspeed = 3 * np.pi*0.07/T
         
   n=n+1
 
 
-# initialize GPIO
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(40, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+# initialize GPIO callback for for anemometer
+pi = pigpio.pi()
+pi.set_mode(21, pigpio.INPUT)
+pi.set_pull_up_down(21, pigpio.PUD_UP)
+cb = pi.callback(21, pigpio.RISING_EDGE, ISR)
 
 # initialize SPI
 spi = spidev.SpiDev()
@@ -99,18 +108,8 @@ spi.open(0,0)
 sensor = BMP085.BMP085(mode=BMP085.BMP085_ULTRAHIGHRES)
 pressure = 0
 
-# initialize time/counter for ISR
-t0 = time.time()
-n = 0  # loop counter for ISR
-wspeed = 0  # initialze wind speed
-wspeed0 = 0  # previous measurement for integry check
-out_temp = 0  # init for temperatures
-in_temp = 0
-
-# register event loop
-GPIO.add_event_detect(40, GPIO.RISING, callback = ISR)
-
-# main loop that captures the data
+# main loop
+time.sleep(5)
 while 1:
 
     # open file
@@ -126,9 +125,9 @@ while 1:
     wdir = get_wind_dir()
 
     # check wind speed for outliers
-    if(abs(wspeed-wspeed0)>10):
-        wspeed = wspeed0
-    wspeed0 = wspeed
+    #if(abs(wspeed-wspeed0)>10):
+    #    wspeed = wspeed0
+    #wspeed0 = wspeed
 
     # write data for weewx
     f.write('windSpeed=%f\n'%mps2mph(wspeed))
