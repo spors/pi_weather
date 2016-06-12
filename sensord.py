@@ -14,7 +14,6 @@
 import numpy as np
 import time
 import re
-#import RPi.GPIO as GPIO
 import pigpio
 import spidev
 import Adafruit_BMP.BMP085 as BMP085
@@ -27,9 +26,9 @@ wspeed0 = 0  # previous measurement for integry check
 out_temp = 0  # init for temperature
 in_temp = 0
 
-# dict for conversion of active bits to wind angles
-adict = {5:0, 3:45, 0:90, 1:135, 2:180, 4:225, 7:270, 6:315}
-
+# data for conversion of ADC values to wind angles
+adc_bins = [0, 36, 58, 79, 109, 151, 182, 248, 332, 444, 565, 672, 825, 1023]
+bin_angle = [270, 315, 292.5, 0, 337.5, 222.5, 247.5, 45, 22.5, 180, 202.5, 135, 157.5, 90]
 
 def C2F(temperature):
   # convert temperature from degrees Celsius to Fahrenheit
@@ -74,19 +73,17 @@ def get_adc(channel):
 def get_wind_dir():
   # get direction from wind vane
   adc = get_adc(0)
-  V = 3.3 * adc / 1023
-  R2 = 2000*5/V - 2000
-  idx = np.round(np.log2(R2/1000))
+  idx = np.digitize([adc], adc_bins)
 
-  return adict[idx]
+  return bin_angle[idx-1]
 
 
 def ISR(gpio, level, tick):
   # interupt service routine which is called by anemometer
   global tick0, n, wspeed
     
-  if ((n%2) & (tick>0)):
-      T=(tick-tick0)*1e-6
+  if ((n%2) & (level==1)):
+      T = pigpio.tickDiff(tick0, tick) * 1e-6
       tick0 = tick
 
       wspeed = 3 * np.pi*0.07/T
@@ -98,6 +95,7 @@ def ISR(gpio, level, tick):
 pi = pigpio.pi()
 pi.set_mode(21, pigpio.INPUT)
 pi.set_pull_up_down(21, pigpio.PUD_UP)
+tick0 = pi.get_current_tick()
 cb = pi.callback(21, pigpio.RISING_EDGE, ISR)
 
 # initialize SPI
@@ -123,6 +121,7 @@ while 1:
 
     # get wind direction
     wdir = get_wind_dir()
+    # wdir = 0
 
     # check wind speed for outliers
     #if(abs(wspeed-wspeed0)>10):
