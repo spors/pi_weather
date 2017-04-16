@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import tornado.httpserver
 import tornado.websocket
 import tornado.ioloop
@@ -6,6 +8,19 @@ import json
 
 data = {}
 clients = []
+
+def Hg2Pa(pressure):
+  # convert pressure from Hg to Pascal
+  return(pressure / 0.000295299830714)
+
+def F2C(temperature):
+  # convert temperature from degrees Celsius to Fahrenheit
+  return((temperature - 32) *  5/9)
+
+def mph2mps(speed):
+  # convert speed from miles per hour to meters per second
+  return(speed / 2.23694)
+
 
 def parse_data(fname):
     
@@ -19,9 +34,8 @@ def parse_data(fname):
 
 def send_data():
     for cl in clients:
-        data = parse_data('/home/pi/wxdata.txt')
-        msg = json.dumps({'windSpeed': data['windSpeed'], 'windDir': data['windDir']})
-        #msg = json.dumps({'windSpeed': 5, 'windDir': 180})
+        data = parse_data('/home/wetterd/wxdata.txt')
+        msg = json.dumps({'windSpeed': mph2mps(data['windSpeed']), 'windDir': data['windDir'], 'pressure': Hg2Pa(data['pressure']), 'inTemp': F2C(data['inTemp'])})
         cl.write_message(msg)
 
 
