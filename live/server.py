@@ -21,6 +21,11 @@ def mph2mps(speed):
   # convert speed from miles per hour to meters per second
   return(speed / 2.23694)
 
+def mph2kt(speed):
+  # convert speed from miles per hour to knots
+  return(speed * 0.868976)
+
+
 
 def parse_data(fname):
     
@@ -35,7 +40,7 @@ def parse_data(fname):
 def send_data():
     for cl in clients:
         data = parse_data('/home/wetterd/wxdata.txt')
-        msg = json.dumps({'windSpeed': mph2mps(data['windSpeed']), 'windDir': data['windDir'], 'pressure': Hg2Pa(data['pressure']), 'inTemp': F2C(data['inTemp'])})
+        msg = json.dumps({'windSpeed': mph2kt(data['windSpeed']), 'windDir': data['windDir'], 'pressure': Hg2Pa(data['pressure']/100), 'inTemp': F2C(data['inTemp'])})
         cl.write_message(msg)
 
 

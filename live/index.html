@@ -8,12 +8,12 @@
     <script src="vendor/steelseries-min.js" type="text/javascript"></script>
     <title>Akdemischer Segelverein zu Rostock -- Wetterstation</title>
     <script type="text/javascript">
-	var windSpeedGauge;
+  var windSpeedGauge;
   var windDirGauge;
   var baroGauge;
-  var inTempGauge;
+  // var inTempGauge;
 
-    var ws = new WebSocket("ws://192.168.2.109:9998/ws");
+    var ws = new WebSocket("ws://wetter-asvzr.opennet-initiative.de:10321/ws");
 
     ws.onopen = function()
     		{
@@ -34,10 +34,10 @@
           windDirGauge.setValueAnimatedAverage(windDir);
           // pressure
           baro = obj.pressure
-          baroGauge.setValue(baro/100);
+          baroGauge.setValue(baro);
           // inside temperature
-          inTemp = obj.inTemp
-          inTempGauge.setValue(inTemp);
+          // inTemp = obj.inTemp
+          // inTempGauge.setValue(inTemp);
          };
 
       ws.onclose = function()
@@ -56,7 +56,7 @@
 		windSpeedGauge = new steelseries.Radial('gaugeCanvas1', {
 			gaugeType: steelseries.GaugeType.TYPE4,
 			minValue:0,
-			maxValue:10,
+			maxValue:30,
 			size: 400,
 			frameDesign: steelseries.FrameDesign.GlossyMetal,
 			knobStyle: steelseries.KnobStyle.STEEL,
@@ -64,7 +64,7 @@
 			section: null,
 			area: null,
 			titleString: 'Geschwindigkeit',
-			unitString: 'm/s',
+			unitString: 'Knoten',
 			threshold: 100,
 			lcdVisible: true,
 			lcdDecimals: 2
@@ -96,25 +96,25 @@
     baroGauge.setValue(''); //gives a blank display 'NaN' until broker has connected
    	baroGauge.setLedColor(steelseries.LedColor.RED_LED); //set the LED RED until connected
 
-    inTempGauge = new steelseries.Radial('gaugeCanvas4', {
-			gaugeType: steelseries.GaugeType.TYPE4,
-			minValue:-20,
-			maxValue:40,
-			size: 400,
-			frameDesign: steelseries.FrameDesign.GlossyMetal,
-			knobStyle: steelseries.KnobStyle.STEEL,
-			pointerType: steelseries.PointerType.TYPE6,
-			section: null,
-			area: null,
-			titleString: 'Temperatur',
-			unitString: 'C',
-			threshold: 40,
-			lcdVisible: true,
-			lcdDecimals: 1
-		   });
+    // inTempGauge = new steelseries.Radial('gaugeCanvas4', {
+    //			gaugeType: steelseries.GaugeType.TYPE4,
+    //			minValue:-20,
+    //			maxValue:40,
+    //			size: 400,
+    //			frameDesign: steelseries.FrameDesign.GlossyMetal,
+    //			knobStyle: steelseries.KnobStyle.STEEL,
+    //			pointerType: steelseries.PointerType.TYPE6,
+    //			section: null,
+    //			area: null,
+    //			titleString: 'Temperatur',
+    //			unitString: 'C',
+    //			threshold: 40,
+    //			lcdVisible: true,
+    //			lcdDecimals: 1
+    //		   });
 
-    inTempGauge.setValue(''); //gives a blank display 'NaN' until broker has connected
-    inTempGauge.setLedColor(steelseries.LedColor.RED_LED); //set the LED RED until connected
+    // inTempGauge.setValue(''); //gives a blank display 'NaN' until broker has connected
+    // inTempGauge.setLedColor(steelseries.LedColor.RED_LED); //set the LED RED until connected
 
 	}
 
@@ -124,11 +124,7 @@
        <div>
        <canvas id=gaugeCanvas1 width=200 height=200>No canvas in your browser...sorry...</canvas>
        <canvas id=gaugeCanvas2 width=200 height=200>No canvas in your browser...sorry...</canvas>
-       </div>
-       <br>
-       <div>
-       <canvas id=gaugeCanvas3 width=200 height=200>No canvas in your browser...sorry...</canvas>
-       <canvas id=gaugeCanvas4 width=200 height=200>No canvas in your browser...sorry...</canvas>
+       <canvas id=gaugeCanvas3 width=200 height=200>No canvas in your browser...sorry...</canvas>   
        </div>
   </body>
 </html>
