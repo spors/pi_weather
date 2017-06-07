@@ -53,7 +53,11 @@
 	    // with help.. http://harmoniccode.blogspot.com.au/
 	    // and code.. https://github.com/HanSolo/SteelSeries-Canvas
 
-		windSpeedGauge = new steelseries.Radial('gaugeCanvas1', {
+   var wind_sections = [steelseries.Section(0, 5, 'rgba(0, 0, 220, 0.3)'),
+                  steelseries.Section(5, 20, 'rgba(0, 220, 0, 0.3)'),
+                  steelseries.Section(20, 30, 'rgba(220, 220, 0, 0.3)') ];    
+
+    windSpeedGauge = new steelseries.Radial('gaugeCanvas1', {
 			gaugeType: steelseries.GaugeType.TYPE4,
 			minValue:0,
 			maxValue:30,
@@ -61,20 +65,20 @@
 			frameDesign: steelseries.FrameDesign.GlossyMetal,
 			knobStyle: steelseries.KnobStyle.STEEL,
 			pointerType: steelseries.PointerType.TYPE6,
-			section: null,
+			section: wind_sections,
 			area: null,
 			titleString: 'Geschwindigkeit',
 			unitString: 'Knoten',
-			threshold: 100,
+			threshold: 30,
 			lcdVisible: true,
 			lcdDecimals: 2
 		   });
 		windSpeedGauge.setValue(''); //gives a blank display 'NaN' until broker has connected
-		windSpeedGauge.setLedColor(steelseries.LedColor.RED_LED); //set the LED RED until connected
+		windSpeedGauge.setLedColor(steelseries.LedColor.RED_LED); // LED RED for > 30 kn
 
     windDirGauge = new steelseries.WindDirection('gaugeCanvas2', {
       size: 300,
-      lcdVisible: true
+      lcdVisible: false
        });
 
     baroGauge = new steelseries.Radial('gaugeCanvas3', {
@@ -91,7 +95,8 @@
 			unitString: 'hPa',
 			threshold: 1030,
 			lcdVisible: true,
-			lcdDecimals: 1
+			lcdDecimals: 1,
+      ledVisible: false
 		   });
     baroGauge.setValue(''); //gives a blank display 'NaN' until broker has connected
    	baroGauge.setLedColor(steelseries.LedColor.RED_LED); //set the LED RED until connected
@@ -124,7 +129,7 @@
     <h1>Aktuelles Wetter im Stadthafen Rostock</h1>
     <p>
 
-    
+
        <div>
        <canvas id=gaugeCanvas1 width=200 height=200>No canvas in your browser...sorry...</canvas>
        <canvas id=gaugeCanvas2 width=200 height=200>No canvas in your browser...sorry...</canvas>
